@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Graph Generator</title>
+    <script>
+        // Function to handle the button click and send input to Flask
+        function sendInput() {
+            // Get the value from the input field
+            var userInput = document.getElementById("userInput").value;
+
+            // Send input to Flask using fetch
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input: userInput })  // Send the input as JSON
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Display the response graph data from Flask in the 'message' div
+                // Assuming the response contains the graph JSON or an error message
+                if (data.error) {
+                    document.getElementById("message").innerHTML = "<strong>Error:</strong> " + data.error;
+                } else {
+                    document.getElementById("message").innerHTML = "<strong>Graph Data:</strong><br>" + JSON.stringify(data, null, 2);
+                }
+            })
+            .catch(error => {
+                // Display any errors that occur during the fetch request
+                document.getElementById("message").innerHTML = "<strong>Error:</strong> " + error.message;
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Song Graph Generator</h1>
+    <p>Input Song:</p>
+
+    <!-- Text input field -->
+    <input type="text" id="userInput" placeholder="Enter song name or artist">
+
+    <!-- Button to send input to Flask -->
+    <button onclick="sendInput()">Send Input</button>
+
+    <!-- Div to display the response message from Flask -->
+    <div id="message"></div>
+</body>
+</html>
