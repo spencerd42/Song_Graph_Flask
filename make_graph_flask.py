@@ -156,7 +156,7 @@ def search():
     song = song_search(request.json.get("input"))
     if not song:
         return jsonify({"error": "Song not found"})
-    graph_json = make_graph(song, 3, 5)
+    graph_json = make_graph(song, 4, 4)
     return graph_json
 
 if __name__ == "__main__":
