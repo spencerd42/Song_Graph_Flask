@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generating Song Graph</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="loading-container">
+        <h2>Generating Song Graph</h2>
+        <div class="spinner"></div>
+        <p>Please wait while we create your musical connection graph...</p>
+    </div>
+
+    <script>
+        const songInput = sessionStorage.getItem('songInput');
+
+        fetch('/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ input: songInput })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                window.location.href = '/';
+                return;
+            }
+            sessionStorage.setItem('graphData', JSON.stringify(data));
+            window.location.href = "graph.html";
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to generate graph. Please try again.');
+            window.location.href = '/';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Graph Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <button id="back-button" onclick="goBack()">Back to Search</button>
+    <div id="graph"></div>
+
+    <script>
+        const graphData = JSON.parse(sessionStorage.getItem('graphData'));
+
+        function goBack() {
+            window.location.href = '/';
+        }
+
+        function drawGraph(data) {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            d3.select("#graph").html("");
+
+            const svg = d3.select("#graph").append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .call(d3.zoom().on("zoom", zoomed));
+
+            const g = svg.append("g");
+
+            const simulation = d3.forceSimulation(data.nodes)
+                .force("link", d3.forceLink(data.links).id(d => d.id).distance(1))
+                .force("charge", d3.forceManyBody().strength(-50))
+                .force("collide", d3.forceCollide(d => 20 + d.listeners / 50000).iterations(10))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            const links = g.append("g")
+                .selectAll(".link")
+                .data(data.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey");
+
+            const nodes = g.append("g")
+                .selectAll(".node")
+                .data(data.nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", d => 15 + d.listeners / 50000)
+                .attr("fill", d => d.color)
+                .attr("stroke", "white")
+                .attr("stroke-width", 1);
+
+            const labels = g.append("g")
+                .selectAll(".node-label")
+                .data(data.nodes)
+                .enter();
+
+            labels.append("text")
+                .attr("class", "node-label title")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("dy", "-0.5em")
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")
+                .attr("font-size", d => {
+                    const fontSize = Math.min(((15 + d.listeners / 50000) * 2.4) / d.title.length, (15 + d.listeners / 50000) / 2);
+                    return fontSize + "px";
+                })
+                .text(d => d.title);
+
+            labels.append("text")
+                .attr("class", "node-label artist")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("dy", "1em")
+                .attr("text-anchor", "middle")
+                .attr("fill", "lightgray")
+                .attr("font-size", d => {
+                    const fontSize = Math.min(((15 + d.listeners / 50000) * 2) / d.title.length, ((15 + d.listeners / 50000) * 2) / d.artist.length);
+                    return fontSize + "px";
+                })
+                .text(d => d.artist);
+
+            simulation.on("tick", () => {
+                links
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                nodes
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                g.selectAll(".node-label")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+
+            function zoomed(event) {
+                g.attr("transform", event.transform);
+            }
+        }
+
+        drawGraph(graphData);
+    </script>
+</body>
+</html>

@@ -38,7 +38,7 @@ def get_similar_songs(track, artist, num_songs):
         "artist": artist,
         "api_key": LASTFM_API_KEY,
         "format": "json",
-        "limit": num_songs,  # Adjust how many recommendations you want
+        "limit": num_songs,
     }
 
     response = requests.get(LASTFM_API_URL, params=params)
@@ -87,7 +87,7 @@ def make_graph(song, num_songs, num_layers):
 
     for node in node_attributes:
         song_info = get_song_info(node_attributes[node]["title"], node_attributes[node]["artist"])
-        node_attributes[node]["listeners"] = song_info["listeners"]
+        node_attributes[node]["listeners"] = int(song_info["listeners"])
         tag_list = song_info["toptags"]["tag"]
         color = DEFAULT_COLOR
         tags = []
@@ -99,7 +99,6 @@ def make_graph(song, num_songs, num_layers):
             tag = tags[i]
             for key in COLOR_MAP.keys():
                 if key.lower() in tag.lower():
-                    # print(key + " in " + tag)
                     color = COLOR_MAP[key]
                     color_found = True
                     break
@@ -107,14 +106,8 @@ def make_graph(song, num_songs, num_layers):
                 break
         node_attributes[node]["color"] = color
 
-        # node_attributes[node]["tags"] = tags
-
     nx.set_node_attributes(graph, node_attributes)
 
-    # nx.draw(graph, with_labels=True, node_color='lightblue', edge_color='gray', node_size=2000, font_size=15)
-    # plt.show()
-
-    # Convert NetworkX graph to JSON for JavaScript usage
     data = nx.readwrite.json_graph.node_link_data(graph)
     graph_json = json.dumps(data)
 
@@ -132,7 +125,6 @@ def draw_connections(graph, track, artist, num_songs, num_layers, node_attribute
         graph.add_node(node_id)
         graph.add_edge(track + " - " + artist, node_id)
         node_attributes[node_id] = {"title" : recs[i]["title"], "artist" : recs[i]["artist"]}
-
 
     for i in range(len(recs)):
         draw_connections(graph, recs[i]["title"], recs[i]["artist"], num_songs, num_layers - 1, node_attributes)
@@ -156,11 +148,13 @@ def song_search(term):
 
 @app.route('/')
 def render():
-    return render_template('graph_UI_zoom.html')
+    return render_template('index.html')
 
 @app.route("/search", methods=["POST"])
 def search():
     song = song_search(request.json.get("input"))
+    if not song:
+        return jsonify({"error": "Song not found"})
     graph_json = make_graph(song, 3, 5)
     return graph_json
 
