@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generating Song Graph</title>
+    <title>Generating Musical Connections</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="logo-container" onclick="window.location.href='/'">
+        <img src="logo.png" alt="Musical Connections Logo" class="logo">
+    </div>
+
     <div class="loading-container">
-        <h2>Generating Song Graph</h2>
+        <h2>Generating Musical Connections</h2>
         <div class="spinner"></div>
-        <p>Please wait while we create your musical connection graph...</p>
+        <p>Exploring musical relationships...</p>
     </div>
 
     <script>
@@ -35,7 +39,7 @@
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Failed to generate graph. Please try again.');
+            alert('Failed to generate connections. Please try again.');
             window.location.href = '/';
         });
     </script>

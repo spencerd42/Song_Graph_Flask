@@ -1,7 +1,7 @@
 body {
     background-color: black;
     color: white;
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     margin: 0;
     display: flex;
     justify-content: center;
@@ -9,6 +9,31 @@ body {
     height: 100vh;
     overflow: hidden;
 }
+
+.logo {
+    width: 100px;  /* Increased logo size */
+    height: 100px; /* Increased logo size */
+    object-fit: contain;
+    cursor: pointer;
+}
+
+.logo-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.logo-container span {
+    margin-left: 15px;
+    font-size: 22px;
+    font-weight: bold;
+    color: white;
+}
+
+/* Rest of the CSS remains the same */
 
 .container {
     background-color: #222;
@@ -57,18 +82,11 @@ button:hover {
     100% { transform: rotate(360deg); }
 }
 
-#back-button {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    background-color: #333;
-    color: white;
-    border: none;
-    padding: 10px;
-    cursor: pointer;
-}
-
 #graph {
     width: 100vw;
     height: 100vh;
+}
+
+#back-button {
+    display: none; /* We'll use logo-container instead */
 }
