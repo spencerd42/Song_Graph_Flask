@@ -3,10 +3,11 @@ import requests
 import networkx as nx
 import json
 import matplotlib.pyplot as plt
+import secret
 
 app = Flask(__name__)
 
-LASTFM_API_KEY = "e72fe324cfc10f3f83e141295d682948"
+LASTFM_API_KEY = secret.LASTFM_API_KEY
 LASTFM_API_URL = "http://ws.audioscrobbler.com/2.0/"
 DEFAULT_COLOR = "#A9A9A9"
 COLOR_MAP = {
