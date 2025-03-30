@@ -4,11 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Graph Generator</title>
+    <style>
+        /* Set the background color to black and text color to white */
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            color: white;
+        }
+        input, button {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 10px;
+            margin: 5px;
+        }
+        input:focus, button:focus {
+            outline: none;
+            border: 1px solid #888;
+        }
+        #message {
+            margin-top: 20px;
+            color: white;
+        }
+        #loading {
+            color: #f39c12;
+            display: none; /* Hidden by default */
+        }
+    </style>
     <script>
         // Function to handle the button click and send input to Flask
         function sendInput() {
             // Get the value from the input field
             var userInput = document.getElementById("userInput").value;
+
+            // Display loading message
+            document.getElementById("loading").style.display = "block";
 
             // Send input to Flask using fetch
             fetch('/search', {
@@ -20,8 +53,10 @@
             })
             .then(response => response.json())
             .then(data => {
+                // Hide loading message
+                document.getElementById("loading").style.display = "none";
+                
                 // Display the response graph data from Flask in the 'message' div
-                // Assuming the response contains the graph JSON or an error message
                 if (data.error) {
                     document.getElementById("message").innerHTML = "<strong>Error:</strong> " + data.error;
                 } else {
@@ -29,6 +64,9 @@
                 }
             })
             .catch(error => {
+                // Hide loading message
+                document.getElementById("loading").style.display = "none";
+                
                 // Display any errors that occur during the fetch request
                 document.getElementById("message").innerHTML = "<strong>Error:</strong> " + error.message;
             });
@@ -40,10 +78,13 @@
     <p>Input Song:</p>
 
     <!-- Text input field -->
-    <input type="text" id="userInput" placeholder="Enter song name or artist">
+    <input type="text" id="userInput" placeholder="Enter song name">
 
     <!-- Button to send input to Flask -->
-    <button onclick="sendInput()">Send Input</button>
+    <button onclick="sendInput()">Submit</button>
+
+    <!-- Loading message -->
+    <div id="loading">Loading...</div>
 
     <!-- Div to display the response message from Flask -->
     <div id="message"></div>
