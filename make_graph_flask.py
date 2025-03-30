@@ -17,7 +17,7 @@ COLOR_MAP = {
     "Jazz": "#4B0082",  # Indigo
     "Classical": "#FFD700",  # Gold
     "Country": "#32CD32",  # Lime Green
-    "Electronic": "#00FFFF",  # Cyan
+    "Electronic": "#3399FF",  # Cyan
     "Reggae": "#FF8C00",  # Dark Orange
     "Blues": "#0000FF",  # Blue
     "Metal": "#8B0000",  # Dark Red
@@ -27,7 +27,7 @@ COLOR_MAP = {
     "Latin": "#FF6347",  # Tomato
     "Dance": "#7FFFD4",  # Aquamarine
     "Soul": "#DDA0DD",   # Plum
-    "Indie": "#FFFF00",   # Yellow
+    "Indie": "#FF9933",   # Yellow
     "Pop": "#FF69B4"  # Hot Pink
 }
 
@@ -156,12 +156,12 @@ def song_search(term):
 
 @app.route('/')
 def render():
-    return render_template('graph_UI.html')
+    return render_template('graph_UI_zoom.html')
 
 @app.route("/search", methods=["POST"])
 def search():
     song = song_search(request.json.get("input"))
-    graph_json = make_graph(song, 4, 3)
+    graph_json = make_graph(song, 3, 5)
     return graph_json
 
 if __name__ == "__main__":

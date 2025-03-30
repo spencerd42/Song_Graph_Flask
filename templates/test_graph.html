@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Visualization</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    body {
+      background-color: black;
+      color: white; /* White text for contrast */
+      margin: 0;
+      padding: 0;
+    }
+
+    svg {
+      background-color: black;
+    }
+
+    .node {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
+
+    .link {
+      stroke: #999;
+      stroke-opacity: 0.6;
+    }
+
+    text {
+      font-size: 10px;
+      fill: white; /* White text for the node labels */
+      pointer-events: none; /* Prevent the text from interfering with drag events */
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Your JSON data
+    const data = {
+      "directed": false,
+      "multigraph": false,
+      "graph": {},
+      "nodes": [
+        { "title": "Valentine", "artist": "Laufey", "listeners": "636815", "color": "#FFFF00", "id": "Valentine - Laufey" },
+        { "title": "Promise", "artist": "Laufey", "listeners": "541750", "color": "#4B0082", "id": "Promise - Laufey" },
+        { "title": "like the movies", "artist": "Laufey", "listeners": "340681", "color": "#4B0082", "id": "like the movies - Laufey" },
+        { "title": "Cherry Wine", "artist": "grentperez", "listeners": "343297", "color": "#A9A9A9", "id": "Cherry Wine - grentperez" },
+        { "title": "Television / So Far So Good", "artist": "Rex Orange County", "listeners": "519477", "color": "#FFFF00", "id": "Television / So Far So Good - Rex Orange County" },
+        { "title": "Second Best", "artist": "Laufey", "listeners": "272306", "color": "#4B0082", "id": "Second Best - Laufey" },
+        { "title": "Bewitched", "artist": "Laufey", "listeners": "292959", "color": "#4B0082", "id": "Bewitched - Laufey" },
+        { "title": "Last Train At 25 O'clock", "artist": "Lamp", "listeners": "283716", "color": "#4B0082", "id": "Last Train At 25 O'clock - Lamp" },
+        { "title": "Rainy Tapestry", "artist": "Lamp", "listeners": "146640", "color": "#4B0082", "id": "Rainy Tapestry - Lamp" }
+        // Add other nodes here
+      ],
+      "links": [
+        { "source": "Valentine - Laufey", "target": "Promise - Laufey" },
+        { "source": "Valentine - Laufey", "target": "like the movies - Laufey" },
+        { "source": "Valentine - Laufey", "target": "Cherry Wine - grentperez" },
+        { "source": "Valentine - Laufey", "target": "Television / So Far So Good - Rex Orange County" }
+        // Add other links here
+      ]
+    };
+
+    // Set up the SVG canvas dimensions
+    const width = 800;
+    const height = 600;
+
+    // Create the SVG container
+    const svg = d3.select("body").append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    // Create a force simulation
+    const simulation = d3.forceSimulation(data.nodes)
+      .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+      .force("charge", d3.forceManyBody().strength(-200))
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+    // Create links (edges)
+    const links = svg.append("g")
+      .selectAll(".link")
+      .data(data.links)
+      .enter().append("line")
+      .attr("class", "link")
+      .attr("stroke-width", 2);
+
+    // Create nodes (vertices)
+    const nodes = svg.append("g")
+      .selectAll(".node")
+      .data(data.nodes)
+      .enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 8)
+      .attr("fill", d => d.color)
+      .call(d3.drag()
+        .on("start", dragstart)
+        .on("drag", dragged)
+        .on("end", dragend));
+
+    // Add node labels (ID)
+    svg.append("g")
+      .selectAll(".node-label")
+      .data(data.nodes)
+      .enter().append("text")
+      .attr("class", "node-label")
+      .attr("x", d => d.x)
+      .attr("y", d => d.y)
+      .attr("dy", -12)  // Position the label above the node
+      .attr("text-anchor", "middle")
+      .text(d => d.id);
+
+    // Run the simulation
+    simulation.on("tick", () => {
+      links
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+      nodes
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+
+      // Update the label positions
+      svg.selectAll(".node-label")
+        .attr("x", d => d.x)
+        .attr("y", d => d.y);
+    });
+
+    // Drag events
+    function dragstart(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragend(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+  </script>
+</body>
+</html>

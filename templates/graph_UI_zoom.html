@@ -9,7 +9,7 @@
         body {
             background-color: black;
             color: white;
-            font-family: Arial, sans-serif;
+            font-family: Garamond, sans-serif;
         }
         h1 {
             color: white;
@@ -37,6 +37,7 @@
             margin-top: 20px;
             width: 100%;
             height: 600px;
+            overflow: hidden;
         }
     </style>
     <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -66,7 +67,6 @@
                 if (data.error) {
                     document.getElementById("message").innerHTML = "<strong>Error:</strong> " + data.error;
                 } else {
-                    // document.getElementById("message").innerHTML = "<strong>Graph Data:</strong><br>" + JSON.stringify(data, null, 2);
                     drawGraph(data);
                 }
             })
@@ -89,17 +89,21 @@
 
             const svg = d3.select("#graph").append("svg")
                 .attr("width", width)
-                .attr("height", height);
+                .attr("height", height)
+                .call(d3.zoom().on("zoom", zoomed)); // Enable zooming
+
+            // Group all elements for panning and zooming
+            const g = svg.append("g");
 
             // Create a force simulation
             const simulation = d3.forceSimulation(data.nodes)
                 .force("link", d3.forceLink(data.links).id(d => d.id).distance(1))
                 .force("charge", d3.forceManyBody().strength(-50))
-                .force("collide", d3.forceCollide(d =>  + d.listeners/50000).iterations(10))
+                .force("collide", d3.forceCollide(d => 20 + d.listeners / 50000).iterations(10))
                 .force("center", d3.forceCenter(width / 2, height / 2));
 
             // Create links (edges)
-            const links = svg.append("g")
+            const links = g.append("g")
                 .selectAll(".link")
                 .data(data.links)
                 .enter().append("line")
@@ -108,32 +112,47 @@
                 .attr("stroke", "grey"); // Set the link color to grey
 
             // Create nodes (vertices)
-            const nodes = svg.append("g")
+            const nodes = g.append("g")
                 .selectAll(".node")
                 .data(data.nodes)
                 .enter().append("circle")
                 .attr("class", "node")
-                .attr("r", d => 15 + d.listeners/50000)
+                .attr("r", d => 15 + d.listeners / 50000)
                 .attr("fill", d => d.color)
                 .attr("stroke", "white")  // Set the node outline to white
-                .attr("stroke-width", 2)  // Set the outline width
-                .call(d3.drag()
-                    .on("start", dragstart)
-                    .on("drag", dragged)
-                    .on("end", dragend));
+                .attr("stroke-width", 1);  // Set the outline width
 
             // Add node labels (ID)
-            svg.append("g")
+            const labels = g.append("g")
                 .selectAll(".node-label")
                 .data(data.nodes)
-                .enter().append("text")
-                .attr("class", "node-label")
+                .enter();
+
+            labels.append("text")
+                .attr("class", "node-label title")
                 .attr("x", d => d.x)
-                .attr("y", d => d.y)
-                // .attr("dy", -12)  // Position the label above the node
+                .attr("y", d => d.y) // Base position for text
+                .attr("dy", "-0.5em") // Move the title slightly up
                 .attr("text-anchor", "middle")
-                .attr("fill", "white")  // Set the label color to white
-                .text(d => d.id);
+                .attr("fill", "white")
+                .attr("font-size", d => {
+                    const fontSize = Math.min(((15 + d.listeners / 50000) * 2.4) / d.title.length, (15 + d.listeners / 50000) / 2);
+                    return fontSize + "px";
+                })
+                .text(d => d.title);
+
+            labels.append("text")
+                .attr("class", "node-label artist")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y) // Keep same base y value
+                .attr("dy", "1em") // Move artist name below title
+                .attr("text-anchor", "middle")
+                .attr("fill", "lightgray")
+                .attr("font-size", d => {
+                    const fontSize = Math.min(((15 + d.listeners / 50000) * 2) / d.title.length, ((15 + d.listeners / 50000) * 2) / d.artist.length);
+                    return fontSize + "px";
+                })
+                .text(d => d.artist);
 
             // Run the simulation
             simulation.on("tick", () => {
@@ -148,27 +167,14 @@
                     .attr("cy", d => d.y);
 
                 // Update the label positions
-                svg.selectAll(".node-label")
+                g.selectAll(".node-label")
                     .attr("x", d => d.x)
                     .attr("y", d => d.y);
             });
 
-            // Drag events
-            function dragstart(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
-                d.fx = d.x;
-                d.fy = d.y;
-            }
-
-            function dragged(event, d) {
-                d.fx = event.x;
-                d.fy = event.y;
-            }
-
-            function dragend(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
+            // Zoom function
+            function zoomed(event) {
+                g.attr("transform", event.transform); // Apply the zoom and pan transformation
             }
         }
     </script>
