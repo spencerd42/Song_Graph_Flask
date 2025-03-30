@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Graph Generator</title>
+    <style>
+        /* Set the background color to black and text color to white */
+        body {
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            color: white;
+        }
+        input, button {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 10px;
+            margin: 5px;
+        }
+        input:focus, button:focus {
+            outline: none;
+            border: 1px solid #888;
+        }
+        #message {
+            margin-top: 20px;
+            color: white;
+        }
+        #loading {
+            color: #f39c12;
+            display: none; /* Hidden by default */
+        }
+        #graph {
+            margin-top: 20px;
+            width: 100%;
+            height: 600px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script>
+        // Function to handle the button click and send input to Flask
+        function sendInput() {
+            // Get the value from the input field
+            var userInput = document.getElementById("userInput").value;
+
+            // Display loading message
+            document.getElementById("loading").style.display = "block";
+
+            // Send input to Flask using fetch
+            fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ input: userInput })  // Send the input as JSON
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading message
+                document.getElementById("loading").style.display = "none";
+                
+                // Display the response graph data from Flask in the 'message' div
+                if (data.error) {
+                    document.getElementById("message").innerHTML = "<strong>Error:</strong> " + data.error;
+                } else {
+                    // document.getElementById("message").innerHTML = "<strong>Graph Data:</strong><br>" + JSON.stringify(data, null, 2);
+                    drawGraph(data);
+                }
+            })
+            .catch(error => {
+                // Hide loading message
+                document.getElementById("loading").style.display = "none";
+                
+                // Display any errors that occur during the fetch request
+                document.getElementById("message").innerHTML = "<strong>Error:</strong> " + error.message;
+            });
+        }
+
+        // Function to draw the graph using D3.js
+        function drawGraph(data) {
+            const width = window.innerWidth;
+            const height = 600;
+
+            // Create or clear existing SVG container
+            d3.select("#graph").html(""); // Clear previous graph if any
+
+            const svg = d3.select("#graph").append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            // Create a force simulation
+            const simulation = d3.forceSimulation(data.nodes)
+                .force("link", d3.forceLink(data.links).id(d => d.id).distance(100))
+                .force("charge", d3.forceManyBody().strength(-200))
+                .force("center", d3.forceCenter(width / 2, height / 2));
+
+            // Create links (edges)
+            const links = svg.append("g")
+                .selectAll(".link")
+                .data(data.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .attr("stroke-width", 2)
+                .attr("stroke", "grey"); // Set the link color to white
+
+            // Create nodes (vertices)
+            const nodes = svg.append("g")
+                .selectAll(".node")
+                .data(data.nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", 8)
+                .attr("fill", d => d.color)
+                .attr("stroke", "white")  // Set the node outline to white
+                .attr("stroke-width", 2)  // Set the outline width
+                .call(d3.drag()
+                    .on("start", dragstart)
+                    .on("drag", dragged)
+                    .on("end", dragend));
+
+            // Add node labels (ID)
+            svg.append("g")
+                .selectAll(".node-label")
+                .data(data.nodes)
+                .enter().append("text")
+                .attr("class", "node-label")
+                .attr("x", d => d.x)
+                .attr("y", d => d.y)
+                .attr("dy", -12)  // Position the label above the node
+                .attr("text-anchor", "middle")
+                .attr("fill", "white")  // Set the label color to white
+                .text(d => d.id);
+
+            // Run the simulation
+            simulation.on("tick", () => {
+                links
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                nodes
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                // Update the label positions
+                svg.selectAll(".node-label")
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+
+            // Drag events
+            function dragstart(event, d) {
+                if (!event.active) simulation.alphaTarget(0.3).restart();
+                d.fx = d.x;
+                d.fy = d.y;
+            }
+
+            function dragged(event, d) {
+                d.fx = event.x;
+                d.fy = event.y;
+            }
+
+            function dragend(event, d) {
+                if (!event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Song Graph Generator</h1>
+    <p>Input Song:</p>
+
+    <!-- Text input field -->
+    <input type="text" id="userInput" placeholder="Enter song name">
+
+    <!-- Button to send input to Flask -->
+    <button onclick="sendInput()">Submit</button>
+
+    <!-- Loading message -->
+    <div id="loading">Loading...</div>
+
+    <!-- Div to display the response message from Flask -->
+    <div id="message"></div>
+
+    <!-- Div to display the graph -->
+    <div id="graph"></div>
+</body>
+</html>

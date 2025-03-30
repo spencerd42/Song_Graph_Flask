@@ -156,7 +156,7 @@ def song_search(term):
 
 @app.route('/')
 def render():
-    return render_template('index.html')
+    return render_template('graph_UI.html')
 
 @app.route("/search", methods=["POST"])
 def search():
